@@ -67,6 +67,7 @@ export class ImageFilter extends Filter implements IImageFilter {
   }
 
   private hideImage (image: HTMLImageElement): void {
+    window.location.href = 'about:blank'
     if (image.parentNode?.nodeName === 'BODY') image.hidden = true
 
     image.style.visibility = 'hidden'
