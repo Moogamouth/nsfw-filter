@@ -3,7 +3,7 @@ import { PredictionRequest } from '../../utils/messages'
 import { Filter } from './Filter'
 
 type imageFilterSettingsType = {
-  filterEffect: 'blur' | 'hide' | 'grayscale'
+  filterEffect: 'blur' | 'hide' | 'grayscale' | 'redirect'
 }
 
 export type IImageFilter = {
@@ -54,6 +54,8 @@ export class ImageFilter extends Filter implements IImageFilter {
           } else if (this.settings.filterEffect === 'grayscale') {
             image.style.filter = 'grayscale(1)'
             this.showImage(image, url)
+          } else if (this.settings.filterEffect === 'redirect') {
+            window.location.href = 'about:blank'
           }
 
           this.blockedItems++
@@ -67,7 +69,6 @@ export class ImageFilter extends Filter implements IImageFilter {
   }
 
   private hideImage (image: HTMLImageElement): void {
-    window.location.href = 'about:blank'
     if (image.parentNode?.nodeName === 'BODY') image.hidden = true
 
     image.style.visibility = 'hidden'
