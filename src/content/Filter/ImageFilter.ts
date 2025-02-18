@@ -57,6 +57,7 @@ export class ImageFilter extends Filter implements IImageFilter {
           this.requestToAnalyzeImage(request)
             .then(({ result }) => {
               if (result) {
+                video.pause();
                 if (this.settings.filterEffect === 'hide') {
                   video.style.visibility = 'hidden'
                 }
