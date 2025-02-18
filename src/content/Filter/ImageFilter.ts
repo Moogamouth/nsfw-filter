@@ -58,6 +58,9 @@ export class ImageFilter extends Filter implements IImageFilter {
             .then(({ result }) => {
               if (result) {
                 video.pause();
+                video.addEventListener("play", function() {
+                  video.pause();
+                });
                 if (this.settings.filterEffect === 'hide') {
                   video.style.visibility = 'hidden'
                 }
