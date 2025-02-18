@@ -8,6 +8,7 @@ type imageFilterSettingsType = {
 
 export type IImageFilter = {
   analyzeImage: (image: HTMLImageElement, srcAttribute: boolean) => void
+  analyzeVideo: (video: HTMLVideoElement) => void
   setSettings: (settings: imageFilterSettingsType) => void
 }
 
@@ -38,6 +39,51 @@ export class ImageFilter extends Filter implements IImageFilter {
     ) {
       image.dataset.nsfwFilterStatus = 'processing'
       this._analyzeImage(image)
+    }
+  }
+
+  public analyzeVideo (video: HTMLVideoElement): void {
+    const canvas = document.createElement('canvas')
+    const context = canvas.getContext('2d')
+
+    if (context) {
+      const analyzeFrame = () => {
+        if (video.readyState >= 2 && video.dataset.nsfwFilterStatus !== 'nsfw') {
+          canvas.width = video.videoWidth
+          canvas.height = video.videoHeight
+          context.drawImage(video, 0, 0, canvas.width, canvas.height)
+          const frameData = canvas.toDataURL('image/png')
+          const request = new PredictionRequest(frameData)
+          this.requestToAnalyzeImage(request)
+            .then(({ result }) => {
+              if (result) {
+                if (this.settings.filterEffect === 'hide') {
+                  video.style.visibility = 'hidden'
+                }
+                else if (this.settings.filterEffect === 'blur') {
+                  video.style.filter = 'blur(25px)'
+                } else if (this.settings.filterEffect === 'grayscale') {
+                  video.style.filter = 'grayscale(1)'
+                } else if (this.settings.filterEffect === 'redirect') {
+                  window.location.href = 'about:blank'
+                }
+
+                this.blockedItems++
+                video.dataset.nsfwFilterStatus = 'nsfw'
+              } else {
+                video.dataset.nsfwFilterStatus = 'sfw'
+              }
+            })
+            .catch(() => {
+              video.dataset.nsfwFilterStatus = 'sfw'
+            })
+        }
+      }
+
+      video.addEventListener('loadedmetadata', () => {
+        analyzeFrame()
+        setInterval(analyzeFrame, 1000)
+      }) 
     }
   }
 
