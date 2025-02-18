@@ -23,6 +23,7 @@ export class DOMWatcher implements IDOMWatcher {
 
   public watch (): void {
     this.observer.observe(document, DOMWatcher.getConfig())
+    this.checkDirectImageLink()
   }
 
   private callback (mutationsList: MutationRecord[]): void {
@@ -46,6 +47,13 @@ export class DOMWatcher implements IDOMWatcher {
   private checkAttributeMutation (mutation: MutationRecord): void {
     if ((mutation.target as HTMLImageElement).nodeName === 'IMG') {
       this.imageFilter.analyzeImage(mutation.target as HTMLImageElement, mutation.attributeName === 'src')
+    }
+  }
+
+  private checkDirectImageLink (): void {
+    const images = document.getElementsByTagName('img')
+    if (images.length === 1 && document.body.childElementCount === 1) {
+      this.imageFilter.analyzeImage(images[0], true)
     }
   }
 
