@@ -6,6 +6,7 @@
 // @TODO <div> and <a>
 
 import { IImageFilter } from '../Filter/ImageFilter'
+import { PROXY_PORT } from '../../config'
 
 export type IDOMWatcher = {
   watch: () => void
@@ -14,6 +15,7 @@ export type IDOMWatcher = {
 export class DOMWatcher implements IDOMWatcher {
   private readonly observer: MutationObserver
   private readonly imageFilter: IImageFilter
+  private static readonly PROXY_URL = `http://localhost:${PROXY_PORT}/?url=`
 
   constructor (imageFilter: IImageFilter) {
     this.imageFilter = imageFilter
@@ -23,6 +25,7 @@ export class DOMWatcher implements IDOMWatcher {
   public watch (): void {
     this.observer.observe(document, DOMWatcher.getConfig())
     this.checkDirectImageLink()
+    this.checkDirectVideoLink()
   }
 
   private callback (mutationsList: MutationRecord[]): void {
@@ -47,7 +50,17 @@ export class DOMWatcher implements IDOMWatcher {
   private findAndCheckAllVideos (element: Element): void {
     const videos = element.getElementsByTagName('video')
     for (let i = 0; i < videos.length; i++) {
-      videos[i].crossOrigin = 'anonymous'
+      const source = videos[i].getElementsByTagName('source')[0]
+      if (source) {
+        videos[i].src = source.src
+      }
+      const originalSrc = videos[i].src
+      console.log("src", videos[i].src)
+      if (!originalSrc.startsWith(DOMWatcher.PROXY_URL)) {
+        const proxySrc = DOMWatcher.PROXY_URL + originalSrc
+        videos[i].src = proxySrc
+        videos[i].crossOrigin = 'anonymous'
+      }
       this.imageFilter.analyzeVideo(videos[i])
     }
   }
@@ -63,7 +76,25 @@ export class DOMWatcher implements IDOMWatcher {
   private checkDirectImageLink (): void {
     const images = document.getElementsByTagName('img')
     if (images.length === 1 && document.body.childElementCount === 1) {
-      this.imageFilter.analyzeImage(images[0], true)
+      this.imageFilter.analyzeImage(images[0], false)
+    }
+  }
+
+  private checkDirectVideoLink (): void {
+    const videos = document.getElementsByTagName('video')
+    if (videos.length === 1 && document.body.childElementCount === 1) {
+      const source = videos[0].getElementsByTagName('source')[0]
+      if (source) {
+        videos[0].src = source.src
+      }
+      const originalSrc = videos[0].src
+      console.log("src", videos[0].src)
+      if (!originalSrc.startsWith(DOMWatcher.PROXY_URL)) {
+        const proxySrc = DOMWatcher.PROXY_URL + originalSrc
+        videos[0].src = proxySrc
+        videos[0].crossOrigin = 'anonymous'
+      }
+      this.imageFilter.analyzeVideo(videos[0])
     }
   }
 

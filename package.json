@@ -33,6 +33,9 @@
   "dependencies": {
     "@tensorflow/tfjs": "3.16.0",
     "antd": "4.6.6",
+    "axios": "1.7.9",
+    "cors": "2.8.5",
+    "express": "4.21.2",
     "nsfwjs": "2.4.1",
     "react": "16.13.1",
     "react-dom": "16.13.1",
@@ -43,7 +46,10 @@
   },
   "devDependencies": {
     "@types/antd": "1.0.0",
+    "@types/axios": "0.14.4",
     "@types/chrome": "0.0.122",
+    "@types/cors": "2.8.17",
+    "@types/express": "5.0.0",
     "@types/react": "16.9.51",
     "@types/react-dom": "16.9.8",
     "@types/react-redux": "7.1.9",
