@@ -23,6 +23,7 @@ export class DOMWatcher implements IDOMWatcher {
   public watch (): void {
     this.observer.observe(document, DOMWatcher.getConfig())
     this.checkDirectImageLink()
+    this.checkDirectVideoLink()
   }
 
   private callback (mutationsList: MutationRecord[]): void {
@@ -47,6 +48,10 @@ export class DOMWatcher implements IDOMWatcher {
   private findAndCheckAllVideos (element: Element): void {
     const videos = element.getElementsByTagName('video')
     for (let i = 0; i < videos.length; i++) {
+      const source = videos[i].getElementsByTagName('source')[0]
+      if (source) {
+        videos[i].src = source.src
+      }
       videos[i].crossOrigin = 'anonymous'
       this.imageFilter.analyzeVideo(videos[i])
     }
@@ -64,6 +69,19 @@ export class DOMWatcher implements IDOMWatcher {
     const images = document.getElementsByTagName('img')
     if (images.length === 1 && document.body.childElementCount === 1) {
       this.imageFilter.analyzeImage(images[0], true)
+      this.imageFilter.analyzeImage(images[0], false)
+    }
+  }
+
+  private checkDirectVideoLink (): void {
+    const videos = document.getElementsByTagName('video')
+    if (videos.length === 1 && document.body.childElementCount === 1) {
+      const source = videos[0].getElementsByTagName('source')[0]
+      if (source) {
+        videos[0].src = source.src
+      }
+      videos[0].crossOrigin = 'anonymous'
+      this.imageFilter.analyzeVideo(videos[0])
     }
   }
 
