@@ -4,12 +4,6 @@ import { enableProdMode } from '@tensorflow/tfjs'
 import { load as loadModel } from 'nsfwjs'
 import { createStore } from 'redux'
 
-import express from 'express'
-import cors from 'cors'
-import axios from 'axios'
-
-import { PROXY_PORT } from '../config'
-
 import { SettingsActionTypes } from '../popup/redux/actions/settings'
 import { StatisticsActionTypes } from '../popup/redux/actions/statistics'
 import { createChromeStore } from '../popup/redux/chrome-storage'
@@ -122,20 +116,3 @@ const init = async (): Promise<void> => {
 }
 
 init()
-
-const app = express()
-
-app.use(cors())
-
-app.use(async (req, res) => {
-  const url = req.query.url;
-  try {
-    const response = await axios.get(url, { responseType: 'stream' })
-    res.set(response.headers)
-    response.data.pipe(res)
-  } catch (error) {
-    res.status(500).send(error)
-  }
-});
-
-app.listen(PROXY_PORT)
