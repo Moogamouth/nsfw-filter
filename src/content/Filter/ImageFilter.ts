@@ -10,6 +10,7 @@ export type IImageFilter = {
   analyzeImage: (image: HTMLImageElement, srcAttribute: boolean) => void
   analyzeVideo: (video: HTMLVideoElement) => void
   setSettings: (settings: imageFilterSettingsType) => void
+  analyzeDiv: (div: HTMLDivElement) => void
 }
 
 export class ImageFilter extends Filter implements IImageFilter {
@@ -88,6 +89,39 @@ export class ImageFilter extends Filter implements IImageFilter {
         analyzeFrame()
         setInterval(analyzeFrame, 1000)
       }) 
+    }
+  }
+
+  public analyzeDiv (div: HTMLDivElement): void {
+    const backgroundImage = window.getComputedStyle(div).backgroundImage
+    if (backgroundImage && backgroundImage !== 'none') {
+      const urlMatch = backgroundImage.match(/url\(["']?([^"']*)["']?\)/)
+      if (urlMatch && urlMatch[1]) {
+        const imageUrl = urlMatch[1]
+        const request = new PredictionRequest(imageUrl)
+        this.requestToAnalyzeImage(request)
+          .then(({ result }) => {
+            if (result) {
+              if (this.settings.filterEffect === 'hide') {
+                div.style.visibility = 'hidden'
+              } else if (this.settings.filterEffect === 'blur') {
+                div.style.filter = 'blur(25px)'
+              } else if (this.settings.filterEffect === 'grayscale') {
+                div.style.filter = 'grayscale(1)'
+              } else if (this.settings.filterEffect === 'redirect') {
+                window.location.href = 'about:blank'
+              }
+
+              this.blockedItems++
+              div.dataset.nsfwFilterStatus = 'nsfw'
+            } else {
+              div.dataset.nsfwFilterStatus = 'sfw'
+            }
+          })
+          .catch(() => {
+            div.dataset.nsfwFilterStatus = 'sfw'
+          })
+      }
     }
   }
 

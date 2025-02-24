@@ -3,7 +3,7 @@
 
 // @TODO Canvas and SVG
 // @TODO Lazy loading for div.style.background-image?
-// @TODO <div> and <a>
+// @TODO <a>
 
 import { IImageFilter } from '../Filter/ImageFilter'
 
@@ -32,6 +32,7 @@ export class DOMWatcher implements IDOMWatcher {
       if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
         this.findAndCheckAllImages(mutation.target as Element)
         this.findAndCheckAllVideos(mutation.target as Element)
+        this.findAndCheckAllDivs(mutation.target as Element)
       } else if (mutation.type === 'attributes') {
         this.checkAttributeMutation(mutation)
       }
@@ -57,18 +58,26 @@ export class DOMWatcher implements IDOMWatcher {
     }
   }
 
+  private findAndCheckAllDivs (element: Element): void {
+    const divs = element.getElementsByTagName('div')
+    for (let i = 0; i < divs.length; i++) {
+      this.imageFilter.analyzeDiv(divs[i])
+    }
+  }
+
   private checkAttributeMutation (mutation: MutationRecord): void {
     if ((mutation.target as HTMLImageElement).nodeName === 'IMG') {
       this.imageFilter.analyzeImage(mutation.target as HTMLImageElement, mutation.attributeName === 'src')
     } else if ((mutation.target as HTMLVideoElement).nodeName === 'VIDEO') {
       this.imageFilter.analyzeVideo(mutation.target as HTMLVideoElement)
+    } else if ((mutation.target as HTMLDivElement).nodeName === 'DIV') {
+      this.imageFilter.analyzeDiv(mutation.target as HTMLDivElement)
     }
   }
 
   private checkDirectImageLink (): void {
     const images = document.getElementsByTagName('img')
     if (images.length === 1 && document.body.childElementCount === 1) {
-      this.imageFilter.analyzeImage(images[0], true)
       this.imageFilter.analyzeImage(images[0], false)
     }
   }
@@ -91,7 +100,7 @@ export class DOMWatcher implements IDOMWatcher {
       subtree: true,
       childList: true,
       attributes: true,
-      attributeFilter: ['src']
+      attributeFilter: ['src', 'style']
     }
   }
 }
